@@ -7,8 +7,8 @@ public class Client {
     Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
-    static boolean loggedin = false;
-
+    static boolean loggedin;
+    private boolean isExecuted;
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -28,7 +28,7 @@ public class Client {
             e.printStackTrace();
         }
     }
-    private boolean isExecuted;
+
     public synchronized void executeOnce() {
         if (isExecuted) {
             return;
@@ -38,25 +38,35 @@ public class Client {
             isExecuted = true;
         }
     }
+    public synchronized void executeOnce2() {
+        if (isExecuted) {
+            return;
+        } else {
+            System.out.println("Provide member number and phone number");
+
+            isExecuted = true;
+        }
+    }
     private void handleUserInput(BufferedReader reader) throws IOException {
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
                     executeOnce();
-
                     String command = scanner.nextLine();
                     loggedin = sendLogin(command,reader);
-                    if (loggedin){
+                    boolean done =true;
+                    if (loggedin ){
+                        done =false;
                         System.out.println("WELCOME TO UPRISE");
                         System.out.println("COMMANDS: deposit, CheckStatement, requestLoan, LoanRequestStatus, exit");
                         System.out.println("Enter command:");
                         String command2 = scanner.nextLine();
                         sendCommand(command2);
                     }else {
-                        System.out.println("Provide member number and phone number");
-                        String command3 = scanner.nextLine();
-                        signUp(command3);
-                    }
+                       executeOnce2();
+                       String command3 = scanner.nextLine();
+                       signUp(command3);
 
+                    }
             }
         } finally {
             out.close();
@@ -92,7 +102,6 @@ public class Client {
         }
         return  false;
     }
-
     private void signUp(String command) {
         try {
             out.writeObject("signup "+command);

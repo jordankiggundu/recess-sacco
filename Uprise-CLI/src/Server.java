@@ -6,6 +6,7 @@ public class Server {
 
     private ServerSocket serverSocket;
     private boolean isRunning;
+    Object member_id = 0;
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -47,7 +48,7 @@ public class Server {
                     String command = parts[0];
                     writer.println("Attempting to:" + command);
                     //handle client command
-                    if (command.equalsIgnoreCase("exit")){
+                    if (command.equalsIgnoreCase("exit")) {
                         writer.println("Good bye");
                         out.close();
                         in.close();
@@ -55,38 +56,74 @@ public class Server {
                         serverSocket.close();
                         break;
 
-                    }else if (command.equalsIgnoreCase("login")) {
+                    }
+                    else if (command.equalsIgnoreCase("login")) {
                         String username = parts[1];
                         String password = parts[2];
-
                         Services services = new Services();
-                        boolean loggedIn = services.Login(username, password);
-
-                        if (loggedIn){
+                        member_id = services.Login(username, password);
+                        System.out.println(member_id);
+                        if ((int) member_id > 0) {
                             writer.println("welcome");
                         } else {
                             writer.println("failed");
                         }
-
-                    } else if (command.equalsIgnoreCase("signup")) {
+                    }
+                    else if (command.equalsIgnoreCase("signup")) {
                         String mem_no = parts[1];
                         String phon_no = parts[2];
                         Services services = new Services();
+                        String givePass = services.signup(mem_no, phon_no);
 
-                        String givePass = services.checkMembership(mem_no,phon_no);
+                        if (!(Objects.equals(givePass, "false"))) {
 
-                        if (!(Objects.equals(givePass, "false"))){
-
-
-                            writer.println("Your password:"+givePass); //send response to client
+                            writer.println("Your password:" + givePass); //send response to client
                         } else {
                             writer.println("Failed, Try agian after 24 hrs");
                         }
                     }
+                    else if (command.equalsIgnoreCase("deposit")) {
+                        int amount = Integer.parseInt(parts[1]);
+                        String receipt_no = parts[3];
+                        Services services = new Services();
+                        boolean deposited = services.deposit((Integer) member_id, amount, receipt_no);
+                        if (deposited) {
+                            writer.println("Deposited successfully");
+                        } else {
+                            writer.println("Deposit failed");
+                        }
+                    }
+                    else if (command.equalsIgnoreCase("requestLoan")) {
+                        int amount = Integer.parseInt(parts[1]);
+                        String period = parts[2];
+                        Services services = new Services();
+                        String loan_id = services.requestLoan((Integer) member_id, amount, Integer.parseInt(period));
+                        if (!(Objects.equals(loan_id, "false"))) {
+                            writer.println("Your loan Application number: "+loan_id);
+                        } else {
+                            writer.println("Request failed");
+                        }
+                    }
+                    else if (command.equalsIgnoreCase("LoanRequestStatus")) {
+                        String Loan_no = parts[1];
+                        Services services = new Services();
+                        String status = services.LoanStatus(Loan_no);
+                        if (!(Objects.equals(status, "false"))) {
+                            writer.println("Your loan "+Loan_no +" has status: "+status);
+                        } else {
+                            writer.println("Failed, No loans found");
+                        }
+                    }
+//                    else if (command.equalsIgnoreCase("CheckStatement")) {
+//                        String start_date = parts[1];
+//                        String end_date = parts[1];
+//                        Services services = new Services();
+//                        String status = services.CheckStatement(start_date,end_date);
+//
+//                    }
                 }
 
             } catch (EOFException e) {
-
                 // if the end of the stream is reached
                 System.out.println("Client has closed the connection.");
             } catch (IOException | ClassNotFoundException e) {
