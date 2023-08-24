@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class Server {
@@ -7,7 +9,6 @@ public class Server {
     private ServerSocket serverSocket;
     private boolean isRunning;
     Object member_id = 0;
-
     public static void main(String[] args) {
         Server server = new Server();
         server.start(1234);
@@ -64,6 +65,7 @@ public class Server {
                         member_id = services.Login(username, password);
                         System.out.println(member_id);
                         if ((int) member_id > 0) {
+
                             writer.println("welcome");
                         } else {
                             writer.println("failed");
@@ -114,13 +116,14 @@ public class Server {
                             writer.println("Failed, No loans found");
                         }
                     }
-//                    else if (command.equalsIgnoreCase("CheckStatement")) {
-//                        String start_date = parts[1];
-//                        String end_date = parts[1];
-//                        Services services = new Services();
-//                        String status = services.CheckStatement(start_date,end_date);
-//
-//                    }
+                    else if (command.equalsIgnoreCase("CheckStatement")) {
+                        String start_date = parts[1];
+                        String end_date = parts[2];
+                        Services services = new Services();
+                        List<String> statements = Collections.singletonList(services.CheckStatement(start_date, end_date).toString());
+//                        for (String statement : statements) {
+                            writer.println(statements);
+                    }
                 }
 
             } catch (EOFException e) {
